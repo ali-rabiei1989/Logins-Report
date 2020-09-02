@@ -40,14 +40,14 @@ do
         fi
         shift
     ;;
-    '-p'|'--PERIOD')
+    '-p'|'--period')
         shift
         if [ -z "$PERIOD" ]; then
             PERIOD="${1}"    
         fi
         shift
     ;;
-    '-r'|'recipient')
+    '-r'|'--recipient')
         shift
         if [ -z "$RECIPIENT" ]; then
             RECIPIENT="${1}"    
