@@ -40,10 +40,10 @@ do
         fi
         shift
     ;;
-    '-t')
+    '-p'|'--PERIOD')
         shift
-        if [ -z "$TIME" ]; then
-            TIME="${1}"    
+        if [ -z "$PERIOD" ]; then
+            PERIOD="${1}"    
         fi
         shift
     ;;
@@ -56,4 +56,18 @@ do
 done
 
 : "${TYPE:=all}"
-: "${TIME:=-7days}"
+: "${PERIOD:=-7days}"
+
+OUTFILE="/tmp/logins-report_$(date +'%m-%d-%Y_%H-%M').report"
+
+echo "------------------------ List of $TYPE logins on server ------------------------" > "$OUTFILE"
+
+if [[ "$TYPE" == "failed" ]]; then
+    last -ai --since "$PERIOD" -f "/var/log/btmp">> "$OUTFILE" 
+elif [[ "$TYPE" == 'successful' ]]; then
+    last -ai --since "$PERIOD" -f "/var/log/wtmp">> "$OUTFILE" 
+else
+    last -ai --since "$PERIOD" -f "/var/log/wtmp" -f "/var/log/btmp">> "$OUTFILE" 
+fi
+
+
