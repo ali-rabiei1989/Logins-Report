@@ -55,7 +55,7 @@ do
         shift
     ;;
     *)
-        echo "unrecognized flag."
+        echo "Unrecognized flag."
         shift
     ;;
     esac
@@ -68,7 +68,7 @@ done
 
 OUTFILE="/tmp/logins-report_$(date +'%m-%d-%Y_%H-%M').report"
 
-echo "------------------------ List of $TYPE logins on server ------------------------" > "$OUTFILE"
+echo "------------------------ List of $TYPE logins on $(hostname) ------------------------" > "$OUTFILE"
 
 if [[ "$TYPE" == "failed" ]]; then
     last -ai --since "$PERIOD" -f "/var/log/btmp">> "$OUTFILE" 
