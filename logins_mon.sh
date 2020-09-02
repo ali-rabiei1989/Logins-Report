@@ -56,3 +56,4 @@ do
 done
 
 : "${TYPE:=all}"
+: "${TIME:=-7days}"
