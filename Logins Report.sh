@@ -5,7 +5,7 @@
 # Creation Date: 08/31/2020
 # Last Modificat`ion Date: 08/31/2020
 
-
+# parsing options
 while [[ $# -gt 0 ]] 
 do
 
@@ -62,14 +62,17 @@ do
 
 done
 
+# Set default values
 : "${TYPE:=all}"
 : "${PERIOD:=-7days}"
 : "${RECIPIENT:=root}"
 
+# Output file location
 OUTFILE="/tmp/logins-report_$(date +'%m-%d-%Y_%H-%M').report"
 
 echo "------------------------ List of $TYPE logins on $(hostname) ------------------------" > "$OUTFILE"
 
+# Decide which command must be executed
 if [[ "$TYPE" == "failed" ]]; then
     last -ai --since "$PERIOD" -f "/var/log/btmp">> "$OUTFILE" 
 elif [[ "$TYPE" == 'successful' ]]; then
@@ -78,4 +81,5 @@ else
     last -ai --since "$PERIOD" -f "/var/log/wtmp" -f "/var/log/btmp">> "$OUTFILE" 
 fi
 
+# Send report via Email
 mail -s "logins report on $(hostname)" "$RECIPIENT" < "$OUTFILE"
