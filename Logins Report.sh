@@ -54,9 +54,16 @@ do
         fi
         shift
     ;;
-    *)
-        echo "Unrecognized flag."
+    '-u'|'--user')
         shift
+        if [ -z "$TGTUSER" ]; then
+            TGTUSER="${1}"    
+        fi
+        shift
+    ;;
+    *)
+        echo "Unrecognized Option : ${1}"
+        exit 1
     ;;
     esac
 
@@ -70,15 +77,15 @@ done
 # Output file location
 OUTFILE="/tmp/logins-report_$(date +'%m-%d-%Y_%H-%M').report"
 
-echo "------------------------ List of $TYPE logins on $(hostname) ------------------------" > "$OUTFILE"
+echo "------------------------ List of $TYPE logins $(if [ -n "$TGTUSER" ]; then echo "for $TGTUSER"; fi) on $(hostname) ------------------------" > "$OUTFILE"
 
 # Decide which command must be executed
 if [[ "$TYPE" == "failed" ]]; then
-    last -ai --since "$PERIOD" -f "/var/log/btmp">> "$OUTFILE" 
+    last -ai --since "$PERIOD" -f "/var/log/btmp" $(if [ -n "$TGTUSER" ]; then echo "$TGTUSER"; fi) >> "$OUTFILE" 
 elif [[ "$TYPE" == 'successful' ]]; then
-    last -ai --since "$PERIOD" -f "/var/log/wtmp">> "$OUTFILE" 
+    last -ai --since "$PERIOD" -f "/var/log/wtmp" $(if [ -n "$TGTUSER" ]; then echo "$TGTUSER"; fi)>> "$OUTFILE" 
 else
-    last -ai --since "$PERIOD" -f "/var/log/wtmp" -f "/var/log/btmp">> "$OUTFILE" 
+    last -ai --since "$PERIOD" -f "/var/log/wtmp" -f "/var/log/btmp" $(if [ -n "$TGTUSER" ]; then echo "$TGTUSER"; fi) >> "$OUTFILE" 
 fi
 
 # Send report via Email
