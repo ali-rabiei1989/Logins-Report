@@ -61,6 +61,54 @@ do
         fi
         shift
     ;;
+    '-c'|'--cron')
+        shift
+        CRON=1
+        FREQ=${1}
+        IFS='@'
+        read -ra F <<< $FREQ 
+        DATEFREQ="${F[0]}"
+        TIMEFREQ="${F[1]}"
+
+        if [[ $DATEFREQ =~ every[[:digit:]]+(day|month|hour|min)s?$ ]]
+        then
+            FREQNO=$(grep -Eo '*[[:digit:]]*' <<< "$DATEFREQ")
+            FREQUNIT=$(grep -Eo '*(day|month|hour|min)*' <<< "$DATEFREQ")
+
+            if [[ $FREQUNIT == 'day' && ( $FREQNO == 0 || $FREQNO -gt 31 ) ]]
+            then
+                echo "Invalid day number: day must be between 1 and 31"
+                exit 1
+            fi
+
+        else 
+            echo "Invalid frequency format: $DATEFREQ"
+            exit 1
+        fi
+
+        if [[ $TIMEFREQ =~ ^[[:digit:]][[:digit:]]?:[[:digit:]][[:digit:]]?$ ]]
+        then
+            
+            HOUR=$(grep -Eo '^[[:digit:]][[:digit:]]?*' <<< "$TIMEFREQ")
+            MIN=$(grep -Eo '*[[:digit:]][[:digit:]]?$' <<< "$TIMEFREQ")
+            if [[ $HOUR -ge 24 ]]
+            then
+                echo "Invalid time format : $TIMEFREQ"
+                exit 1
+            fi
+
+            if [[ $MIN -ge 60 ]]
+            then 
+                echo "Invalid time format : $TIMEFREQ"
+                exit 1
+            fi
+
+        else
+            echo "Invalid time format: $TIMEFREQ"
+        fi
+        
+        shift
+    ;;
     *)
         echo "Unrecognized Option : ${1}"
         exit 1
@@ -90,3 +138,10 @@ fi
 
 # Send report via Email
 mail -s "logins report on $(hostname)" "$RECIPIENT" < "$OUTFILE"
+
+if [[ $CRON == 1 ]]
+then
+
+    ENTRY=$"$MIN $HOUR */$FREQNO * * root /usr/bin/loginreport --$TYPE --recipient $RECIPIENT --period -$FREQNO"" $(if [ -n "$TGTUSER" ]; then echo --user "$TGTUSER"; fi) > /dev/null 2>&1"
+    echo "$ENTRY" >> /etc/crontab
+fi
